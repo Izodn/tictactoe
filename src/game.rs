@@ -5,6 +5,11 @@ extern crate cli;
 use self::cli::interface::Interface;
 use std::ascii::AsciiExt;
 
+//Slot constants
+const SLOT_EMPTY: u8 = 0;
+const SLOT_X: u8 = 1;
+const SLOT_O: u8 = 2;
+
 /// The structure of members in our Game
 pub struct Game {
 	cli: Interface,
@@ -22,7 +27,7 @@ impl Game {
 		Game {
 			cli: Interface::new(),
 			running: false,
-			board: [0; 9]
+			board: [SLOT_EMPTY; 9]
 		}
 	}
 
@@ -84,11 +89,15 @@ impl Game {
 
 				if self.valid_move(&number) {
 					//Register user move
-					self.set_board_slot(number as usize, 1);
+					self.set_board_slot(number as usize, SLOT_X);
 					break;
 				} else {
 					self.cli.print("I'm sorry, that is not a valid move.".to_string());
 				}
+			}
+
+			if self.check_end() {
+				break;
 			}
 		}
 	}
@@ -137,8 +146,8 @@ impl Game {
 	/// Returns: A String of "X", "O", " "
 	fn get_board_slot(&self, pos: usize) -> &'static str {
 		match self.board[pos] {
-			1 => "X",
-			2 => "O",
+			SLOT_X => "X",
+			SLOT_O => "O",
 			_ => " "
 		}
 	}
@@ -146,5 +155,36 @@ impl Game {
 	/// Set a given board slot
 	fn set_board_slot(&mut self, pos: usize, input: u8) {
 		self.board[pos] = input;
+	}
+
+	/// Checks the board for a win/loss/tie scenario then outputs an matching message
+	///
+	/// Returns: a bool of whether or not the game has ended
+	fn check_end(&self) -> bool {
+
+		//If all of the pieces are used
+		let mut slot_total = 0;
+		for slot in 0..8 {
+			slot_total += self.board[slot];
+		}
+		if slot_total >= 9 * SLOT_O {
+			self.cli.print("The game was a tie".to_string());
+			return true;
+		}
+
+		//If X has won
+		if self.board[0] + self.board[1] + self.board[2] == SLOT_X * 3 //Top
+		|| self.board[0] + self.board[3] + self.board[6] == SLOT_X * 3 //Left
+		|| self.board[2] + self.board[5] + self.board[8] == SLOT_X * 3 //Right
+		|| self.board[6] + self.board[7] + self.board[8] == SLOT_X * 3 //Bottom
+		|| self.board[0] + self.board[4] + self.board[8] == SLOT_X * 3 //Diag left to right
+		|| self.board[2] + self.board[4] + self.board[6] == SLOT_X * 3 { //Diag right to left
+			self.cli.print("X is the winner".to_string());
+			return true;
+		}
+
+		//If O has won
+
+		false //No win/loss/tie yet
 	}
 }
