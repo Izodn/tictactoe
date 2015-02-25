@@ -162,14 +162,17 @@ impl Game {
 	/// Returns: a bool of whether or not the game has ended
 	fn check_end(&self) -> bool {
 
+		let mut end: bool = false;
+		let mut message: String = "".to_string();
+
 		//If all of the pieces are used
 		let mut slot_total = 0;
 		for slot in 0..8 {
 			slot_total += self.board[slot];
 		}
 		if slot_total >= 9 * SLOT_O {
-			self.cli.print("The game was a tie".to_string());
-			return true;
+			message = "The game was a tie".to_string();
+			end = true;
 		}
 
 		//If X has won
@@ -179,11 +182,26 @@ impl Game {
 		|| self.board[6] + self.board[7] + self.board[8] == SLOT_X * 3 //Bottom
 		|| self.board[0] + self.board[4] + self.board[8] == SLOT_X * 3 //Diag left to right
 		|| self.board[2] + self.board[4] + self.board[6] == SLOT_X * 3 { //Diag right to left
-			self.cli.print("X is the winner".to_string());
-			return true;
+			message = "X is the winner".to_string();
+			end = true;
 		}
 
 		//If O has won
+		if self.board[0] + self.board[1] + self.board[2] == SLOT_O * 3 //Top
+		|| self.board[0] + self.board[3] + self.board[6] == SLOT_O * 3 //Left
+		|| self.board[2] + self.board[5] + self.board[8] == SLOT_O * 3 //Right
+		|| self.board[6] + self.board[7] + self.board[8] == SLOT_O * 3 //Bottom
+		|| self.board[0] + self.board[4] + self.board[8] == SLOT_O * 3 //Diag left to right
+		|| self.board[2] + self.board[4] + self.board[6] == SLOT_O * 3 { //Diag right to left
+			message = "O is the winner".to_string();
+			end = true;
+		}
+
+		if end {
+			self.cli.print(self.get_board_str());
+			self.cli.print(message);
+			return true; //End
+		}
 
 		false //No win/loss/tie yet
 	}
