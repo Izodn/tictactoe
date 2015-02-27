@@ -4,17 +4,26 @@
 extern crate cli;
 use self::cli::interface::Interface;
 use std::ascii::AsciiExt;
+use player::Player;
+use player::PLAYERTYPE;
 
 //Slot constants
-const SLOT_EMPTY: u8 = 0;
-const SLOT_X: u8 = 1;
-const SLOT_O: u8 = 2;
+pub const SLOT_EMPTY: u8 = 0;
+pub const SLOT_X: u8 = 1;
+pub const SLOT_O: u8 = 4;
+
+//Game state constants
+const NO_END: u8 = 0;
+const TIE: u8 = 1;
+const WIN_X: u8 = 2;
+const WIN_O: u8 = 3;
 
 /// The structure of members in our Game
 pub struct Game {
-	cli: Interface,
-	running: bool,
-	board: [u8; 9]
+	pub cli: Interface,
+	pub running: bool,
+	pub board: [u8; 9],
+	pub players: Vec<Player>
 }
 
 /// Implementation of our Game
@@ -27,7 +36,8 @@ impl Game {
 		Game {
 			cli: Interface::new(),
 			running: false,
-			board: [SLOT_EMPTY; 9]
+			board: [SLOT_EMPTY; 9],
+			players: Vec::<Player>::new()
 		}
 	}
 
@@ -60,6 +70,10 @@ impl Game {
 			return;
 		}
 
+		//Set the players
+		self.players.push( Player::new(PLAYERTYPE::HUMAN) );
+		self.players.push( Player::new(PLAYERTYPE::HUMAN) );
+
 		self.main_loop();
 	}
 
@@ -70,48 +84,45 @@ impl Game {
 
 		while self.running {
 
-			//Print the board
-			self.cli.print(self.get_board_str() + "\n\n\n");
-
-			//User move
-			while self.running {
-
-				let mut user_move: String = "".to_string();
-				let mut number: u8 = 10;
-
-				self.cli.prompt("Your move?".to_string(), &mut user_move);
-
-				let input: Option<u8> = user_move.trim().parse().ok();
-				number = match input {
-					Some(num) => num,
-					None => 10 // 10 = invalid. There are 0 - 9 places on board
+			//Make moves
+			for player in 0..2 {
+				let player_type = match player {
+					1 => SLOT_O,
+					_ => SLOT_X
 				};
 
-				if self.valid_move(&number) {
-					//Register user move
-					self.set_board_slot(number as usize, SLOT_X);
+				//Print the board
+				self.cli.print(self.get_board_str() + "\n\n\n");
+
+				let player_move = self.players[player].get_controller().make_move(&self.board);
+				self.set_board_slot(player_move, player_type as u8);
+
+				//Handle checking for the end of the game
+				let end: u8 = check_end(&self.board);
+				if end != NO_END {
+					//Print the board
+					self.cli.print(self.get_board_str());
+
+					//Output the proper win/tie message
+					match end {
+						TIE => {
+							self.cli.print("The game is a tie.".to_string());
+						},
+						WIN_X => {
+							self.cli.print("X is the winner".to_string());
+						},
+						WIN_O => {
+							self.cli.print("O is the winner.".to_string());
+						},
+						_ => {}
+					}
+
+					//Break out of the main loop
+					self.running = false;
 					break;
-				} else {
-					self.cli.print("I'm sorry, that is not a valid move.".to_string());
 				}
 			}
-
-			if self.check_end() {
-				break;
-			}
 		}
-	}
-
-	/// Check if the desired move is valid
-	///
-	/// Returns: bool of valid or not
-	fn valid_move(&self, pos: &u8) -> bool {
-		if *pos < 9 {
-			if self.board[*pos as usize] == 0 {
-				return true;
-			}
-		}
-		false
 	}
 
 	/// Method to return the board
@@ -156,53 +167,42 @@ impl Game {
 	fn set_board_slot(&mut self, pos: usize, input: u8) {
 		self.board[pos] = input;
 	}
+}
 
-	/// Checks the board for a win/loss/tie scenario then outputs an matching message
-	///
-	/// Returns: a bool of whether or not the game has ended
-	fn check_end(&self) -> bool {
+/// Checks the board for a win/loss/tie scenario then outputs an matching message
+///
+/// Returns: a bool of whether or not the game has ended
+fn check_end(board: &[u8;9]) -> u8 {
 
-		let mut end: bool = false;
-		let mut message: String = "".to_string();
-
-		//If all of the pieces are used
-		let mut slot_total = 0;
-		for slot in 0..8 {
-			slot_total += self.board[slot];
-		}
-		if slot_total >= 9 * SLOT_O {
-			message = "The game was a tie".to_string();
-			end = true;
-		}
-
-		//If X has won
-		if self.board[0] + self.board[1] + self.board[2] == SLOT_X * 3 //Top
-		|| self.board[0] + self.board[3] + self.board[6] == SLOT_X * 3 //Left
-		|| self.board[2] + self.board[5] + self.board[8] == SLOT_X * 3 //Right
-		|| self.board[6] + self.board[7] + self.board[8] == SLOT_X * 3 //Bottom
-		|| self.board[0] + self.board[4] + self.board[8] == SLOT_X * 3 //Diag left to right
-		|| self.board[2] + self.board[4] + self.board[6] == SLOT_X * 3 { //Diag right to left
-			message = "X is the winner".to_string();
-			end = true;
-		}
-
-		//If O has won
-		if self.board[0] + self.board[1] + self.board[2] == SLOT_O * 3 //Top
-		|| self.board[0] + self.board[3] + self.board[6] == SLOT_O * 3 //Left
-		|| self.board[2] + self.board[5] + self.board[8] == SLOT_O * 3 //Right
-		|| self.board[6] + self.board[7] + self.board[8] == SLOT_O * 3 //Bottom
-		|| self.board[0] + self.board[4] + self.board[8] == SLOT_O * 3 //Diag left to right
-		|| self.board[2] + self.board[4] + self.board[6] == SLOT_O * 3 { //Diag right to left
-			message = "O is the winner".to_string();
-			end = true;
-		}
-
-		if end {
-			self.cli.print(self.get_board_str());
-			self.cli.print(message);
-			return true; //End
-		}
-
-		false //No win/loss/tie yet
+	//If all of the pieces are used
+	let mut slot_total = 0;
+	for slot in 0..8 {
+		slot_total += board[slot];
 	}
+	if slot_total >= 9 * SLOT_O {
+		return TIE;
+	}
+
+	//If X has won
+	if board[0] + board[1] + board[2] == SLOT_X * 3 //Top
+	|| board[0] + board[3] + board[6] == SLOT_X * 3 //Left
+	|| board[2] + board[5] + board[8] == SLOT_X * 3 //Right
+	|| board[6] + board[7] + board[8] == SLOT_X * 3 //Bottom
+	|| board[0] + board[4] + board[8] == SLOT_X * 3 //Diag left to right
+	|| board[2] + board[4] + board[6] == SLOT_X * 3 { //Diag right to left
+		println!("{}", (board[0] + board[1] + board[2]));
+		return WIN_X;
+	}
+
+	//If O has won
+	if board[0] + board[1] + board[2] == SLOT_O * 3 //Top
+	|| board[0] + board[3] + board[6] == SLOT_O * 3 //Left
+	|| board[2] + board[5] + board[8] == SLOT_O * 3 //Right
+	|| board[6] + board[7] + board[8] == SLOT_O * 3 //Bottom
+	|| board[0] + board[4] + board[8] == SLOT_O * 3 //Diag left to right
+	|| board[2] + board[4] + board[6] == SLOT_O * 3 { //Diag right to left
+		return WIN_O;
+	}
+
+	NO_END //No win/loss/tie yet
 }
