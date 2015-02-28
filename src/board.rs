@@ -38,7 +38,7 @@ impl Board {
 	pub fn get_board_str(&self) -> String {
 		let mut board: String = "".to_string();
 		for _ in 0..100 {
-			//board = board + "\n";
+			board = board + "\n";
 		}
 		board = board +
 			"     |     |     \n" +
@@ -117,19 +117,15 @@ impl Board {
 	}
 
 	pub fn is_winning_move(&self, pos: usize, win_type: u8) -> bool {
-		println!("Hit is_winning_move");
 		let mut board: [u8; 9] = self.slots.clone();
 		if board[pos] == SLOT_EMPTY {
-			println!("Found empty slot {}", pos);
 			board[pos] = match win_type {
 				WIN_O => SLOT_O,
 				_ => SLOT_X
 			};
 			if self.is_win(board) == win_type {
-				println!("Found winning slot {}", pos);
 				return true;
 			}
-			println!("Didn't find win. Got {} instead", self.is_win(board));
 		}
 		false
 	}
