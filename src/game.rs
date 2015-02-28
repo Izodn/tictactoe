@@ -72,7 +72,7 @@ impl Game {
 
 		//Set the players
 		self.players.push( Player::new(PLAYERTYPE::HUMAN) );
-		self.players.push( Player::new(PLAYERTYPE::HUMAN) );
+		self.players.push( Player::new(PLAYERTYPE::AI) );
 
 		self.main_loop();
 	}
@@ -174,15 +174,6 @@ impl Game {
 /// Returns: a bool of whether or not the game has ended
 fn check_end(board: &[u8;9]) -> u8 {
 
-	//If all of the pieces are used
-	let mut slot_total = 0;
-	for slot in 0..8 {
-		slot_total += board[slot];
-	}
-	if slot_total >= 9 * SLOT_O {
-		return TIE;
-	}
-
 	//If X has won
 	if board[0] + board[1] + board[2] == SLOT_X * 3 //Top
 	|| board[0] + board[3] + board[6] == SLOT_X * 3 //Left
@@ -204,5 +195,12 @@ fn check_end(board: &[u8;9]) -> u8 {
 		return WIN_O;
 	}
 
-	NO_END //No win/loss/tie yet
+	//If all of the pieces are used
+	for slot in 0..9 {
+		if board[slot] == SLOT_EMPTY {
+			return NO_END; //No win/loss/tie yet
+		}
+	}
+
+	TIE
 }
