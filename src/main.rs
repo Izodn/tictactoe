@@ -2,6 +2,7 @@
 pub mod game;
 pub mod player;
 pub mod controllers;
+pub mod board;
 use game::Game;
 
 fn main() {
