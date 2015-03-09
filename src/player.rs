@@ -3,6 +3,7 @@ use controllers::Controller;
 use controllers::human::HumanController;
 use controllers::ai::AIController;
 use controllers::ai::Memory;
+use controllers::ai::GameData;
 use self::cli::interface::Interface;
 
 /// Enum of player types
@@ -35,9 +36,7 @@ impl Player {
 				Player {
 					controller: Box::new(AIController {
 						memory: Memory {
-							wins: Box::new(Vec::<[u8;9]>::new()),
-							ties: Box::new(Vec::<[u8;9]>::new()),
-							losses: Box::new(Vec::<[u8;9]>::new())
+							games: Box::new(Vec::<GameData>::new())
 						}
 					})
 				}

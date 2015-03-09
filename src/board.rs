@@ -9,8 +9,16 @@ pub const TIE: u8 = 1;
 pub const WIN_X: u8 = 2;
 pub const WIN_O: u8 = 3;
 
+#[derive(Clone)]
+pub struct Move {
+	pub slot: u8,
+	pub slot_type: u8
+}
+
+#[derive(Clone)]
 pub struct Board {
-	slots: [u8; 9]
+	slots: [u8; 9],
+	pub moves: Vec<Move>
 }
 
 /// Implementation of Board. This object will act as a source
@@ -19,7 +27,8 @@ pub struct Board {
 impl Board {
 	pub fn new() -> Board {
 		Board {
-			slots: [SLOT_EMPTY; 9]
+			slots: [SLOT_EMPTY; 9],
+			moves: Vec::<Move>::new()
 		}
 	}
 
@@ -70,6 +79,12 @@ impl Board {
 	/// Set a given board slot
 	pub fn set_board_slot(&mut self, pos: usize, input: u8) {
 		self.slots[pos] = input;
+		self.moves.push(
+			Move {
+				slot: pos as u8,
+				slot_type: input
+			}
+		);
 	}
 
 	/// Get the visual representation of a board slot

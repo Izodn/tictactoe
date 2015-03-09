@@ -34,6 +34,7 @@ impl Game {
 	/// See if the player wants to start, then start or quit
 	#[allow(unused_assignments)] //undecided isn't /read/ but it's observed as a loop condition
 	pub fn start(&mut self) {
+
 		let mut start_game: String = "".to_string();
 		let mut undecided: bool = true;
 
