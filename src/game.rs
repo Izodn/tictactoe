@@ -64,6 +64,11 @@ impl Game {
 		self.players.push( Player::new(PLAYERTYPE::HUMAN) );
 		self.players.push( Player::new(PLAYERTYPE::AI) );
 
+		//Register players
+		for player in 0..2 {
+			self.players[player].get_controller().register();
+		}
+
 		self.main_loop();
 	}
 
@@ -89,7 +94,7 @@ impl Game {
 				self.cli.print(self.board.get_board_str() + "\n\n\n");
 
 				let player_move = self.players[player].get_controller().make_move(&self.board, win_type as u8);
-				self.board.set_board_slot(player_move, player_type as u8);
+				self.board.set_board_slot(player_move, player_type);
 
 				//Handle checking for the end of the game
 				let end: u8 = self.board.check_end();

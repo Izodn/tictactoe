@@ -13,6 +13,9 @@ pub struct Board {
 	slots: [u8; 9]
 }
 
+/// Implementation of Board. This object will act as a source
+/// to provide information about the board, including who won.
+/// It'll also act as a course for acting on the board.
 impl Board {
 	pub fn new() -> Board {
 		Board {
@@ -80,6 +83,11 @@ impl Board {
 		}
 	}
 
+	/// Check if the board has a winner
+	///
+	/// Returns: u8 of the winner type
+	///
+	/// Todo: Make this an enum value
 	pub fn is_win(&self, board: [u8; 9]) -> u8 {
 
 		//If X has won
@@ -116,14 +124,17 @@ impl Board {
 		TIE
 	}
 
-	pub fn is_winning_move(&self, pos: usize, win_type: u8) -> bool {
+	/// Check if the desired move is a winning move for a given type
+	///
+	/// Returns: bool of whether or not the given move will win the game
+	pub fn is_winning_move(&self, pos: usize, end_type: u8) -> bool {
 		let mut board: [u8; 9] = self.slots.clone();
 		if board[pos] == SLOT_EMPTY {
-			board[pos] = match win_type {
+			board[pos] = match end_type {
 				WIN_O => SLOT_O,
 				_ => SLOT_X
 			};
-			if self.is_win(board) == win_type {
+			if self.is_win(board) == end_type {
 				return true;
 			}
 		}
