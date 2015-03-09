@@ -26,7 +26,7 @@ impl Controller for AIController {
 	/// use previous game data to decide a non-losing move
 	///
 	/// Returns: usize of the slot chosen to move into
-	fn make_move(&mut self, board: &Board, win_type: u8) -> usize {
+	fn make_move(&mut self, board: &Board, end_type: u8) -> usize {
 
 		//Select first winning move
 		for slot in 0..9 {
