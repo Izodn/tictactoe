@@ -45,7 +45,6 @@ impl Controller for AIController {
 		if board.valid_move(&(popular_move as u8)) {
 			return popular_move
 		}
-
 		//Choose the next open slot
 		for slot in 0..9 {
 			if board.valid_move(&(slot as u8)) {
@@ -60,7 +59,7 @@ impl Controller for AIController {
 	/// when a game starts against a player, the AI isn't without
 	/// any win/loss/tie data
 	fn register(&mut self) {
-		for _ in 0..500 {
+		for _ in 0..50 {
 			let mut board: Board = Board::new();
 			let mut game: GameData = GameData {
 				moves: Vec::<Move>::new(),
@@ -130,7 +129,8 @@ fn decide_move(memory: &Memory, board: &Board, end_type: u8) -> usize {
 
 	let mut popular_move = 0;
 	for cur_move in 0..9 {
-		if popularity[cur_move] > popularity[popular_move] {
+		//println!("move[{}]: {}", cur_move, popularity[cur_move]);
+		if popularity[cur_move] >= popularity[popular_move] && board.valid_move(&(cur_move as u8)) {
 			popular_move = cur_move;
 		}
 	}
