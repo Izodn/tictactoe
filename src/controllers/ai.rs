@@ -60,7 +60,7 @@ impl Controller for AIController {
 	/// when a game starts against a player, the AI isn't without
 	/// any win/loss/tie data
 	fn register(&mut self) {
-		for _ in 0..1 {
+		for _ in 0..500 {
 			let mut board: Board = Board::new();
 			let mut game: GameData = GameData {
 				moves: Vec::<Move>::new(),
@@ -102,7 +102,7 @@ impl Controller for AIController {
 }
 
 fn decide_move(memory: &Memory, board: &Board, end_type: u8) -> usize {
-	let mut popularity: [u64;9] = [0;9];
+	let mut popularity: [i64;9] = [0;9];
 	let relevant_games: Vec<GameData> = get_relevant_games(memory, board);
 
 	//Calculate popularity of winning moves
@@ -110,27 +110,28 @@ fn decide_move(memory: &Memory, board: &Board, end_type: u8) -> usize {
 		if game.game_status == end_type {
 			popularity[
 				game.moves[
-					get_turn_number(board)
+					get_turn_number(board)-1
 				].slot as usize
 			] += 3;
 		} else if game.game_status == TIE {
 			popularity[
 				game.moves[
-					get_turn_number(board)
+					get_turn_number(board)-1
 				].slot as usize
 			] += 1;
 		} else {
 			popularity[
 				game.moves[
-					get_turn_number(board)
+					get_turn_number(board)-1
 				].slot as usize
 			] -= 1;
 		}
 	}
+
 	let mut popular_move = 0;
 	for cur_move in 0..9 {
 		if popularity[cur_move] > popularity[popular_move] {
-			popular_move = cur_move
+			popular_move = cur_move;
 		}
 	}
 	popular_move
