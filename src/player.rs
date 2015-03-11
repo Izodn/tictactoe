@@ -3,7 +3,7 @@ use controllers::Controller;
 use controllers::human::HumanController;
 use controllers::ai::AIController;
 use controllers::ai::Memory;
-use controllers::ai::GameData;
+use game::GameData;
 use self::cli::interface::Interface;
 
 /// Enum of player types

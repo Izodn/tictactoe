@@ -1,14 +1,13 @@
 use controllers::Controller;
 use board::*;
+use game::GameData;
+use game::Move;
+use player::Player;
+use player::PLAYERTYPE::AI;
 
 /// Our Memory structure. To hold previous game result data
 pub struct Memory {
 	pub games: Box<Vec<GameData>>
-}
-
-pub struct GameData {
-	pub moves: Vec<Move>,
-	pub game_status: u8
 }
 
 /// Our AIController structure. This will make moves on a given board
@@ -45,6 +44,7 @@ impl Controller for AIController {
 		if board.valid_move(&(popular_move as u8)) {
 			return popular_move
 		}
+
 		//Choose the next open slot
 		for slot in 0..9 {
 			if board.valid_move(&(slot as u8)) {
@@ -59,14 +59,15 @@ impl Controller for AIController {
 	/// when a game starts against a player, the AI isn't without
 	/// any win/loss/tie data
 	fn register(&mut self) {
-		for _ in 0..50 {
+		let mut opponent: Player = Player::new(AI);
+		for _ in 0..100 {
 			let mut board: Board = Board::new();
 			let mut game: GameData = GameData {
 				moves: Vec::<Move>::new(),
 				game_status: NO_END
 			};
 
-			let mut slot_type: u8 = SLOT_X;
+			let mut slot_type: u8 = SLOT_O;
 
 			loop {
 				let win_type = match slot_type {
@@ -74,7 +75,14 @@ impl Controller for AIController {
 					_ => WIN_X
 				};
 
-				let player_move: usize = self.make_move(&board, win_type);
+				let player_move: usize = match slot_type {
+					SLOT_O => {
+						opponent.get_controller().make_move(&board, win_type)
+					},
+					_ => {
+						self.make_move(&board, win_type)
+					}
+				};
 				board.set_board_slot(player_move, slot_type);
 				game.moves.push(
 					Move {
@@ -95,8 +103,16 @@ impl Controller for AIController {
 					slot_type = SLOT_X;
 				}
 			}
-			self.memory.games.push(game);
+			let game_self: GameData = game.clone();
+			let game_opponent: GameData = game.clone();
+			self.notify_end(game_self);
+			opponent.get_controller().notify_end(game_opponent);
 		}
+	}
+
+	/// Let the AI know the game has ended so memory works
+	fn notify_end(&mut self, game: GameData) {
+		self.memory.games.push(game);
 	}
 }
 
@@ -104,43 +120,42 @@ fn decide_move(memory: &Memory, board: &Board, end_type: u8) -> usize {
 	let mut popularity: [i64;9] = [0;9];
 	let relevant_games: Vec<GameData> = get_relevant_games(memory, board);
 
-	//Calculate popularity of winning moves
 	for game in relevant_games {
 		if game.game_status == end_type {
 			popularity[
 				game.moves[
-					get_turn_number(board)-1
+					get_turn_number(board)
 				].slot as usize
-			] += 3;
+			] += 1;
 		} else if game.game_status == TIE {
 			popularity[
 				game.moves[
-					get_turn_number(board)-1
+					get_turn_number(board)
 				].slot as usize
-			] += 1;
+			] -= 1;
 		} else {
 			popularity[
 				game.moves[
-					get_turn_number(board)-1
+					get_turn_number(board)
 				].slot as usize
-			] -= 1;
+			] -= 2;
 		}
 	}
 
 	let mut popular_move = 0;
 	for cur_move in 0..9 {
-		//println!("move[{}]: {}", cur_move, popularity[cur_move]);
 		if popularity[cur_move] >= popularity[popular_move] && board.valid_move(&(cur_move as u8)) {
 			popular_move = cur_move;
 		}
 	}
 	popular_move
 }
+
 fn get_relevant_games(memory: &Memory, board: &Board) -> Vec<GameData> {
 	let mut relevant_games = Vec::<GameData>::new();
 
 	//Save the turn. If this is the very first turn, this will be 1
-	let turn: usize = get_turn_number(&board)-1;
+	let turn: usize = get_turn_number(&board);
 
 	//Iterate over every known game
 	for game in 0..(*memory.games).len() {
@@ -153,6 +168,11 @@ fn get_relevant_games(memory: &Memory, board: &Board) -> Vec<GameData> {
 
 		//For every turn so far
 		for turn_iterator in 0..turn {
+
+			if board.moves.len() == 0 {
+				relevant_game = true;
+				break;
+			}
 
 			//If the following move isn't in the current set
 			if memory.games[game].moves[turn_iterator].slot != board.moves[turn_iterator].slot {
@@ -175,6 +195,7 @@ fn get_relevant_games(memory: &Memory, board: &Board) -> Vec<GameData> {
 	}
 	relevant_games
 }
+
 fn get_turn_number(board: &Board) -> usize {
 	let mut turn_number: u8 = 0;
 	for slot in 0..9 {
@@ -182,5 +203,5 @@ fn get_turn_number(board: &Board) -> usize {
 			turn_number += 1;
 		}
 	}
-	(turn_number + 1) as usize
+	(turn_number) as usize
 }

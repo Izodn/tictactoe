@@ -6,7 +6,25 @@ use self::cli::interface::Interface;
 use std::ascii::AsciiExt;
 use player::Player;
 use player::PLAYERTYPE;
-use board::*;
+use board::Board;
+use board::SLOT_X;
+use board::SLOT_O;
+use board::NO_END;
+use board::TIE;
+use board::WIN_X;
+use board::WIN_O;
+
+#[derive(Clone)]
+pub struct Move {
+	pub slot: u8,
+	pub slot_type: u8
+}
+
+#[derive(Clone)]
+pub struct GameData {
+	pub moves: Vec<Move>,
+	pub game_status: u8
+}
 
 /// The structure of members in our Game
 pub struct Game {

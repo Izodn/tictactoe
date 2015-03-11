@@ -1,3 +1,5 @@
+use game::Move;
+
 //Slot types
 pub const SLOT_EMPTY: u8 = 0;
 pub const SLOT_X: u8 = 1;
@@ -8,12 +10,6 @@ pub const NO_END: u8 = 0;
 pub const TIE: u8 = 1;
 pub const WIN_X: u8 = 2;
 pub const WIN_O: u8 = 3;
-
-#[derive(Clone)]
-pub struct Move {
-	pub slot: u8,
-	pub slot_type: u8
-}
 
 #[derive(Clone)]
 pub struct Board {
