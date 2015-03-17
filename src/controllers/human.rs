@@ -1,12 +1,9 @@
-extern crate cli;
-use self::cli::interface::Interface;
+use cli;
 use controllers::Controller;
 use board::*;
 
 /// Our HumanController structure. This will make moves on a given board
-pub struct HumanController {
-	pub cli: Interface
-}
+pub struct HumanController;
 
 impl HumanController{}
 
@@ -24,9 +21,7 @@ impl Controller for HumanController {
 	fn make_move(&mut self, board: &Board, _: u8) -> usize {
 		let mut number: u8;
 		loop {
-			let mut user_move: String = "".to_string();
-
-			self.cli.prompt("Your move?".to_string(), &mut user_move);
+			let user_move: String = cli::prompt("Your move?".to_string());
 
 			let input: Option<u8> = user_move.trim().parse().ok();
 			number = match input {
@@ -37,7 +32,7 @@ impl Controller for HumanController {
 			if board.valid_move(&number) {
 				break;
 			} else {
-				self.cli.print("I'm sorry, that is not a valid move.".to_string());
+				cli::print("I'm sorry, that is not a valid move.".to_string());
 			}
 		}
 		number as usize

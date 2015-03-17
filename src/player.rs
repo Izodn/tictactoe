@@ -1,10 +1,8 @@
-extern crate cli;
 use controllers::Controller;
 use controllers::human::HumanController;
 use controllers::ai::AIController;
 use controllers::ai::Memory;
 use game::GameData;
-use self::cli::interface::Interface;
 
 /// Enum of player types
 pub enum PLAYERTYPE {
@@ -27,9 +25,7 @@ impl Player {
 		match player_type {
 			PLAYERTYPE::HUMAN => {
 				Player {
-					controller: Box::new(HumanController {
-						cli: Interface::new()
-					})
+					controller: Box::new(HumanController)
 				}
 			},
 			PLAYERTYPE::AI => {

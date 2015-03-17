@@ -1,8 +1,7 @@
 //! Our Game object.
 
 //Imports/uses
-extern crate cli;
-use self::cli::interface::Interface;
+use cli;
 use std::ascii::AsciiExt;
 use player::Player;
 use player::PLAYERTYPE;
@@ -28,7 +27,6 @@ pub struct GameData {
 
 /// The structure of members in our Game
 pub struct Game {
-	pub cli: Interface,
 	pub running: bool,
 	pub board: Board,
 	pub players: Vec<Player>
@@ -42,7 +40,6 @@ impl Game {
 	/// Returns: a Game
 	pub fn new() -> Game {
 		Game {
-			cli: Interface::new(),
 			running: false,
 			board: Board::new(),
 			players: Vec::<Player>::new()
@@ -60,7 +57,7 @@ impl Game {
 			undecided = false;
 
 			//Ask the user to proceed
-			self.cli.prompt("Would you like to play a game? (y/N)".to_string(), &mut start_game);
+			start_game = cli::prompt("Would you like to play a game? (y/N)".to_string());
 
 			if "y".to_string() == start_game.to_ascii_lowercase() {
 				self.running = true;
@@ -69,7 +66,7 @@ impl Game {
 				self.running = false;
 				break;
 			} else {
-				self.cli.print("I'm sorry, I didn't catch that.".to_string());
+				cli::print("I'm sorry, I didn't catch that.".to_string());
 				undecided = true;
 			}
 		}
@@ -110,7 +107,7 @@ impl Game {
 				};
 
 				//Print the board
-				self.cli.print(self.board.get_board_str() + "\n\n\n");
+				cli::print(self.board.get_board_str() + "\n\n\n");
 
 				let player_move = self.players[player].get_controller().make_move(&self.board, win_type as u8);
 				self.board.set_board_slot(player_move, player_type);
@@ -119,18 +116,18 @@ impl Game {
 				let end: u8 = self.board.check_end();
 				if end != NO_END {
 					//Print the board
-					self.cli.print(self.board.get_board_str());
+					cli::print(self.board.get_board_str());
 
 					//Output the proper win/tie message
 					match end {
 						TIE => {
-							self.cli.print("The game is a tie.".to_string());
+							cli::print("The game is a tie.".to_string());
 						},
 						WIN_X => {
-							self.cli.print("X is the winner".to_string());
+							cli::print("X is the winner".to_string());
 						},
 						WIN_O => {
-							self.cli.print("O is the winner.".to_string());
+							cli::print("O is the winner.".to_string());
 						},
 						_ => {}
 					}

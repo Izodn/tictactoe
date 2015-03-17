@@ -3,6 +3,3 @@
 name = "tictactoe"
 version = "0.0.1"
 authors = ["Brandon Burton <izodn0@gmail.com>"]
-
-[dependencies.cli]
-path = "../cli/"
